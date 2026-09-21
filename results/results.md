@@ -46,11 +46,11 @@ The naive reward counts lateness only, so it pays for `edd_naive`'s flush-free s
 
 ## Charts
 
-![A schedule the verifier accepts (hard-10000, full_aware)](gantt_valid.png)
+![A schedule the verifier accepts (hard-10002, full_aware)](gantt_valid.png)
 
-*A schedule the verifier accepts (hard-10000, full_aware)*
+*A schedule the verifier accepts (hard-10002, full_aware)*
 
-![On time, and illegal: the naive reward pays 1 (hard-10000, edd_naive)](gantt_exploit.png)
+![On time, and illegal: the naive reward pays 1 (hard-10002, edd_naive)](gantt_exploit.png)
 
-*On time, and illegal: the naive reward pays 1 (hard-10000, edd_naive)*
+*On time, and illegal: the naive reward pays 1 (hard-10002, edd_naive)*
 

@@ -216,19 +216,27 @@ def write_report(path: Path, evaluation: Evaluation, charts: dict[str, Path]) ->
 
 
 def pick_demo_task(seeds: Iterable[int], difficulties: Sequence[str]) -> D.Task | None:
-    """The first task where full_aware succeeds and edd_naive cheats.
+    """The first task where full_aware succeeds, edd_naive cheats, and a flush
+    is what separates them.
 
-    "Cheats" means the naive reward pays and the verifier does not, which is
-    what makes the pair of charts worth looking at.
+    "Cheats" means the naive reward pays and the verifier does not. The flush
+    matters for the picture: on a task whose feeds never contaminate each
+    other, the valid schedule contains no flush at all, and the two charts
+    then show the line rules but not the carry-over that motivates them.
+    Falls back to the looser criterion if no task satisfies the strict one.
     """
+    fallback: D.Task | None = None
     for difficulty in difficulties:
         for seed in seeds:
             task = G.generate(seed, difficulty).task
             good = run_episode(AGENTS["full_aware"](), task)
             bad = run_episode(AGENTS["edd_naive"](), task)
-            if good.score == 1 and bad.score == 0 and naive_reward(bad.final_state) == 1.0:
+            if not (good.score == 1 and bad.score == 0 and naive_reward(bad.final_state) == 1.0):
+                continue
+            if any(action["tool"] == D.TOOL_FLUSH for action in good.actions):
                 return task
-    return None
+            fallback = fallback or task
+    return fallback
 
 
 def write_charts(out_dir: Path, task: D.Task) -> dict[str, Path]:

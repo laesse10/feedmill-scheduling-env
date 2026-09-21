@@ -102,6 +102,9 @@ def test_the_demo_task_shows_a_real_exploit() -> None:
     assert good.score == 1, "the valid chart must show a schedule that passes"
     assert bad.score == 0, "the exploit chart must show one that does not"
     assert naive_reward(bad.final_state) == 1.0, "and the naive reward must pay for it"
+    assert any(a["tool"] == D.TOOL_FLUSH for a in good.actions), (
+        "the valid chart must contain a flush, or the pair does not show carry-over"
+    )
 
 
 def test_the_evaluation_matches_running_the_agents_directly() -> None:
