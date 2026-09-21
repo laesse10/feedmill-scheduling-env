@@ -46,10 +46,15 @@ on every task, so the control gap is exactly 0 (SPEC section 12).
 
 ![On time, and illegal](results/gantt_exploit.png)
 
-Same task, same 13 orders. The second schedule finishes every order early and
-scores 0: two batches of pig PAP feed on the plain line, two batches of sheep
-feed on a line that handles animal protein, and broiler feed on a poultry PAP
-line.
+Same task, same 13 orders, same due times. The first spends two flushes
+(green) and one idle block and scores 1. The second spends neither, finishes
+every order early, and scores 0: layer feed leaves the mill at twice the
+antimicrobial limit, pig feed runs on the pig-PAP line, and dairy feed runs on
+a line that handles animal protein.
+
+Orange is a batch that carries a substance into the next one, green is a
+flush, a red hatch is a batch that breaks a rule with the reason written
+underneath, and the whisker after each batch is its slack to the due time.
 
 ## The task
 
