@@ -397,8 +397,9 @@ class Task:
     def from_json(d: Mapping[str, Any]) -> "Task":
         return Task(
             task_id=str(d["task_id"]),
-            seed=int(d["seed"]),
-            difficulty=str(d["difficulty"]),
+            # A task file from a real mill has neither of these (SPEC 13).
+            seed=int(d.get("seed", -1)),
+            difficulty=str(d.get("difficulty", "external")),
             horizon_min=int(d.get("horizon_min", HORIZON_MIN)),
             carry_over_rate=float(d.get("carry_over_rate", CARRY_OVER_RATE)),
             flush_tonnes=float(d.get("flush_tonnes", FLUSH_TONNES)),

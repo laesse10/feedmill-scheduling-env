@@ -70,11 +70,16 @@ class Replay:
     """What the log actually did, next to the verdict on every entry."""
 
     lines: dict[str, LineReplay]
-    batches: list[dict[str, Any]]
+    segments: list[dict[str, Any]]
     completions: dict[str, dict[str, Any]]
     statuses: list[str]
     finished: bool
     violations: list[str]
+
+    @property
+    def batches(self) -> list[dict[str, Any]]:
+        """Productions and flushes: the segments that leave a residue."""
+        return [s for s in self.segments if s["kind"] in (D.TOOL_PRODUCE, D.TOOL_FLUSH)]
 
 
 # --------------------------------------------------------------------------
@@ -118,7 +123,7 @@ def replay(final_state: Mapping[str, Any]) -> Replay:
         )
         for line_id, line in lines.items()
     }
-    batches: list[dict[str, Any]] = []
+    segments: list[dict[str, Any]] = []
     completions: dict[str, dict[str, Any]] = {}
     statuses: list[str] = []
     violations: list[str] = []
@@ -156,14 +161,20 @@ def replay(final_state: Mapping[str, Any]) -> Replay:
         st = state[line.id]
 
         if tool == D.TOOL_WAIT:
+            start = st.clock
             st.clock += int(action["minutes"])
+            segments.append(_segment(line.id, D.TOOL_WAIT, None, None, start, st.clock, None))
 
         elif tool == D.TOOL_CHANGE_DIE:
             rule = house.get(D.H4_DIE_CHANGE_DAY_ONLY)
             if rule and st.clock > int(rule.params["latest_start"]):
                 flag(D.V_H4_DIE_CHANGE_TIME)
+            start = st.clock
             st.clock += _die_change_minutes(task, line.id)
             st.die_mm = int(action["die_mm"])
+            segments.append(
+                _segment(line.id, D.TOOL_CHANGE_DIE, None, str(st.die_mm), start, st.clock, None)
+            )
 
         elif tool == D.TOOL_FLUSH:
             start = st.clock
@@ -172,7 +183,9 @@ def replay(final_state: Mapping[str, Any]) -> Replay:
             st.last_batch_kind = D.TOOL_FLUSH
             st.last_batch_feed = None
             st.copper_pending = False
-            batches.append(_batch(line.id, D.TOOL_FLUSH, None, None, start, st.clock, st.concentrations))
+            segments.append(
+                _segment(line.id, D.TOOL_FLUSH, None, None, start, st.clock, st.concentrations)
+            )
 
         elif tool == D.TOOL_PRODUCE:
             order = orders[action["order"]]
@@ -200,8 +213,10 @@ def replay(final_state: Mapping[str, Any]) -> Replay:
                 st.copper_pending = True
 
             completions[order.id] = {"line": line.id, "start": start, "end": st.clock}
-            batches.append(
-                _batch(line.id, D.TOOL_PRODUCE, order.id, feed.id, start, st.clock, st.concentrations)
+            segments.append(
+                _segment(
+                    line.id, D.TOOL_PRODUCE, order.id, feed.id, start, st.clock, st.concentrations
+                )
             )
 
     if set(completions) != set(orders):
@@ -211,7 +226,7 @@ def replay(final_state: Mapping[str, Any]) -> Replay:
 
     return Replay(
         lines=state,
-        batches=batches,
+        segments=segments,
         completions=completions,
         statuses=statuses,
         finished=finished,
@@ -419,15 +434,16 @@ def _die_change_minutes(task: D.Task, line_id: str) -> int:
     return task.die_change_minutes
 
 
-def _batch(
+def _segment(
     line_id: str,
     kind: str,
     order_id: str | None,
     feed_id: str | None,
     start: int,
     end: int,
-    concentrations: Mapping[str, float],
+    concentrations: Mapping[str, float] | None,
 ) -> dict[str, Any]:
+    """One block of occupied line time, as the log describes it."""
     return {
         "line": line_id,
         "kind": kind,
@@ -435,5 +451,5 @@ def _batch(
         "feed": feed_id,
         "start": start,
         "end": end,
-        "concentrations": dict(concentrations),
+        "concentrations": dict(concentrations) if concentrations is not None else None,
     }

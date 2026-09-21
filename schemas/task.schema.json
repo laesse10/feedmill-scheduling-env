@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/laesse10/feedmill-scheduling-env/schemas/task.schema.json",
+  "title": "Feed mill scheduling task",
+  "description": "One day of orders for one mill. A real mill's order book, feed catalog, carry-over rate and house rules convert into this format without code changes (SPEC section 13). Evaluate one with: python run.py --task-file path.json",
+  "type": "object",
+  "required": ["task_id", "feeds", "lines", "orders"],
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "Identifier of this task. Part of the task hash the log chain is anchored to."
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Generator seed. Absent for a task that did not come from the generator."
+    },
+    "difficulty": {
+      "type": "string",
+      "description": "easy, medium or hard for generated tasks; anything else for an external one."
+    },
+    "horizon_min": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1440,
+      "description": "Length of the production day in minutes. Minute 0 is 06:00."
+    },
+    "carry_over_rate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.02,
+      "description": "Share of the previous batch that the next batch picks up."
+    },
+    "flush_tonnes": {"type": "number", "exclusiveMinimum": 0, "default": 1.0, "description": "Size of a flush batch. It is run through the line and discarded."},
+    "flush_minutes": {"type": "integer", "minimum": 1, "default": 15, "description": "How long a flush occupies the line."},
+    "die_change_minutes": {"type": "integer", "minimum": 1, "default": 45, "description": "Default die change duration. House rule H3 overrides it for one line."},
+    "max_steps": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 200,
+      "description": "The episode truncates after this many actions."
+    },
+    "feeds": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The catalog this mill produces. Need not be the full example catalog.",
+      "items": {
+        "type": "object",
+        "required": ["id", "species", "ruminant", "substances", "carry_over_class", "die_mm"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "species": {
+            "type": "string",
+            "description": "Drives the intra-species ban L5 through the species-to-PAP mapping."
+          },
+          "ruminant": {
+            "type": "boolean",
+            "description": "true means the feed may never run on a line with pap_type other than none (L3)."
+          },
+          "substances": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["monensin", "antimicrobial", "copper_high", "pap_pig", "pap_poultry"]
+            },
+            "uniqueItems": true
+          },
+          "carry_over_class": {
+            "type": "string",
+            "enum": ["target", "sensitive", "less_sensitive"],
+            "description": "Coccidiostat sensitivity. sensitive is the 1 % limit, less_sensitive the 3 % limit, target the feed the substance belongs in."
+          },
+          "die_mm": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "lines": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The production lines of the mill. Each keeps its own clock, die and residue.",
+      "items": {
+        "type": "object",
+        "required": ["id", "rate_t_per_h", "pap_type", "initial_die_mm"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "rate_t_per_h": {"type": "number", "exclusiveMinimum": 0},
+          "pap_type": {
+            "type": "string",
+            "enum": ["none", "pig", "poultry"],
+            "description": "Which processed animal protein this line is dedicated to (L4, L5)."
+          },
+          "initial_die_mm": {"type": "integer", "minimum": 1},
+          "initial_concentrations": {
+            "type": "object",
+            "description": "Residue left in the line before the day starts. Absent means clean.",
+            "additionalProperties": {"type": "number", "minimum": 0}
+          }
+        }
+      }
+    },
+    "orders": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The day's order book. Every order must be produced exactly once, in full, before its due time.",
+      "items": {
+        "type": "object",
+        "required": ["id", "customer", "feed", "tonnes", "due"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "customer": {"type": "string"},
+          "feed": {"type": "string", "description": "An id from feeds."},
+          "tonnes": {"type": "number", "exclusiveMinimum": 0},
+          "due": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Minutes after 06:00. The order must be finished at or before this."
+          }
+        }
+      }
+    },
+    "house_rules": {
+      "type": "array",
+      "description": "Company rules. They only ever tighten the law (SPEC section 5).",
+      "items": {
+        "type": "object",
+        "required": ["id", "params", "text"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": ["H1", "H2", "H3", "H4", "H5", "H6"],
+            "description": "H1 customer_flush, H2 sequence_ban, H3 slow_die, H4 die_change_day_only, H5 lab_hold, H6 copper_sheep_flush."
+          },
+          "params": {"type": "object"},
+          "text": {"type": "string", "description": "The rule in one sentence, shown to the agent."}
+        }
+      }
+    }
+  }
+}

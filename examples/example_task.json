@@ -1,0 +1,185 @@
+{
+  "task_id": "muehle-thurtal-2024-03-11",
+  "horizon_min": 1440,
+  "carry_over_rate": 0.02,
+  "flush_tonnes": 1.0,
+  "flush_minutes": 15,
+  "die_change_minutes": 45,
+  "max_steps": 200,
+  "feeds": [
+    {
+      "id": "layer",
+      "species": "laying_hen",
+      "ruminant": false,
+      "substances": [],
+      "carry_over_class": "sensitive",
+      "die_mm": 3
+    },
+    {
+      "id": "broiler_mon",
+      "species": "broiler",
+      "ruminant": false,
+      "substances": [
+        "monensin"
+      ],
+      "carry_over_class": "target",
+      "die_mm": 3
+    },
+    {
+      "id": "broiler_withdrawal",
+      "species": "broiler",
+      "ruminant": false,
+      "substances": [],
+      "carry_over_class": "sensitive",
+      "die_mm": 3
+    },
+    {
+      "id": "pig_grower",
+      "species": "pig",
+      "ruminant": false,
+      "substances": [],
+      "carry_over_class": "less_sensitive",
+      "die_mm": 4
+    },
+    {
+      "id": "pig_medicated",
+      "species": "pig",
+      "ruminant": false,
+      "substances": [
+        "antimicrobial"
+      ],
+      "carry_over_class": "less_sensitive",
+      "die_mm": 4
+    },
+    {
+      "id": "pig_poultrypap",
+      "species": "pig",
+      "ruminant": false,
+      "substances": [
+        "pap_poultry"
+      ],
+      "carry_over_class": "less_sensitive",
+      "die_mm": 4
+    },
+    {
+      "id": "piglet_starter",
+      "species": "pig",
+      "ruminant": false,
+      "substances": [
+        "copper_high"
+      ],
+      "carry_over_class": "less_sensitive",
+      "die_mm": 3
+    },
+    {
+      "id": "dairy",
+      "species": "cattle",
+      "ruminant": true,
+      "substances": [],
+      "carry_over_class": "sensitive",
+      "die_mm": 6
+    }
+  ],
+  "lines": [
+    {
+      "id": "L1",
+      "rate_t_per_h": 22.5,
+      "pap_type": "none",
+      "initial_die_mm": 4,
+      "initial_concentrations": {
+        "monensin": 0.0,
+        "antimicrobial": 0.0,
+        "copper_high": 0.0,
+        "pap_pig": 0.0,
+        "pap_poultry": 0.0
+      }
+    },
+    {
+      "id": "L2",
+      "rate_t_per_h": 18.0,
+      "pap_type": "poultry",
+      "initial_die_mm": 4,
+      "initial_concentrations": {
+        "monensin": 0.0,
+        "antimicrobial": 0.0,
+        "copper_high": 0.0,
+        "pap_pig": 0.0,
+        "pap_poultry": 0.0
+      }
+    }
+  ],
+  "orders": [
+    {
+      "id": "O1",
+      "customer": "Eierhof Brunner",
+      "feed": "layer",
+      "tonnes": 24.5,
+      "due": 226
+    },
+    {
+      "id": "O2",
+      "customer": "Gefluegel Steiner",
+      "feed": "broiler_mon",
+      "tonnes": 31.0,
+      "due": 342
+    },
+    {
+      "id": "O3",
+      "customer": "Gefluegel Steiner",
+      "feed": "broiler_withdrawal",
+      "tonnes": 18.5,
+      "due": 133
+    },
+    {
+      "id": "O4",
+      "customer": "Schweinehof Amrein",
+      "feed": "pig_grower",
+      "tonnes": 40.0,
+      "due": 188
+    },
+    {
+      "id": "O5",
+      "customer": "Schweinehof Amrein",
+      "feed": "pig_medicated",
+      "tonnes": 12.5,
+      "due": 350
+    },
+    {
+      "id": "O6",
+      "customer": "Milchhof Lehmann",
+      "feed": "dairy",
+      "tonnes": 27.0,
+      "due": 527
+    },
+    {
+      "id": "O7",
+      "customer": "Schweinehof Amrein",
+      "feed": "pig_poultrypap",
+      "tonnes": 22.0,
+      "due": 292
+    },
+    {
+      "id": "O8",
+      "customer": "Schweinehof Amrein",
+      "feed": "piglet_starter",
+      "tonnes": 15.5,
+      "due": 507
+    }
+  ],
+  "house_rules": [
+    {
+      "id": "H1",
+      "params": {
+        "customer": "Milchhof Lehmann"
+      },
+      "text": "Every order of Milchhof Lehmann must be produced directly after a flush of the line."
+    },
+    {
+      "id": "H4",
+      "params": {
+        "latest_start": 960
+      },
+      "text": "A die change may only be started between minute 0 and minute 960 (06:00 to 22:00)."
+    }
+  ]
+}
