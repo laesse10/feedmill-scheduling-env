@@ -189,6 +189,26 @@ STATUS_INVALID = "invalid"
 
 
 @dataclass(frozen=True)
+class LegalRule:
+    """One EU rule, structured for code and in one sentence for a reader."""
+
+    id: str
+    kind: str
+    params: dict[str, Any]
+    text: str
+    basis: str
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "kind": self.kind,
+            "params": dict(self.params),
+            "text": self.text,
+            "basis": self.basis,
+        }
+
+
+@dataclass(frozen=True)
 class Feed:
     """One product in the feed catalog (SPEC 2.3)."""
 
@@ -421,6 +441,75 @@ FEED_BY_ID: dict[str, Feed] = {f.id: f for f in FEED_CATALOG}
 PAP_FEED_IDS: tuple[str, ...] = tuple(f.id for f in FEED_CATALOG if f.pap_substance)
 
 DIE_SIZES: tuple[int, ...] = tuple(sorted({f.die_mm for f in FEED_CATALOG}))
+
+#: The EU rules of SPEC section 4, structured and in one sentence each.
+#: They are part of every observation (SPEC section 7).
+LEGAL_RULES: tuple[LegalRule, ...] = (
+    LegalRule(
+        id="L1",
+        kind="carry_over_limit",
+        params={"substance": MONENSIN, "limits": dict(COCCIDIOSTAT_LIMIT)},
+        text=(
+            "Monensin carried over into a feed that does not contain it must stay "
+            "at or below 1 % of the authorised level for sensitive feeds and 3 % "
+            "for less sensitive feeds."
+        ),
+        basis="Directive 2009/8/EC amending Annex I of Directive 2002/32/EC",
+    ),
+    LegalRule(
+        id="L2",
+        kind="carry_over_limit",
+        params={"substance": ANTIMICROBIAL, "limit": ANTIMICROBIAL_LIMIT},
+        text=(
+            "An antimicrobial carried over into any feed that does not contain it "
+            "must stay at or below 1 % of the authorised level."
+        ),
+        basis="Regulation (EU) 2019/4 Article 7; Delegated Regulation (EU) 2024/1229",
+    ),
+    LegalRule(
+        id="L3",
+        kind="line_restriction",
+        params={"ruminant_feeds_allowed_pap_types": [PAP_NONE]},
+        text=(
+            "Ruminant feeds may never be produced on a line that handles processed "
+            "animal protein, whatever is flushed in between."
+        ),
+        basis="Regulation (EC) No 999/2001 Article 7(1) and Annex IV",
+    ),
+    LegalRule(
+        id="L4",
+        kind="line_restriction",
+        params={"required_line_pap_type": dict(PAP_SUBSTANCE_LINE)},
+        text=(
+            "Porcine PAP may be used in poultry feed and poultry PAP in pig feed, "
+            "but only on a line dedicated to that PAP type."
+        ),
+        basis="Commission Regulation (EU) 2021/1372 amending Annex IV of Regulation (EC) No 999/2001",
+    ),
+    LegalRule(
+        id="L5",
+        kind="line_restriction",
+        params={
+            "species_pap_group": {k: v for k, v in SPECIES_PAP_GROUP.items() if v is not None}
+        },
+        text=(
+            "No feed for a species may be produced on a line whose PAP type is that "
+            "same species: pig feeds never on a pig line, poultry feeds never on a "
+            "poultry line."
+        ),
+        basis="Regulation (EC) No 1069/2009 Article 11(1)(a)",
+    ),
+    LegalRule(
+        id="L6",
+        kind="physical",
+        params={"die_change_minutes": DIE_CHANGE_MINUTES},
+        text=(
+            "A feed can only be pelleted with its own die; changing the die takes "
+            "45 minutes. Producing with the wrong die is impossible, not illegal."
+        ),
+        basis="Physical constraint of the press, not law",
+    ),
+)
 
 
 # --------------------------------------------------------------------------
