@@ -31,6 +31,7 @@ from typing import Any, Callable, Mapping
 
 from . import domain as D
 from .generator import generate
+from .verifier import verify
 
 Action = Any
 RewardFn = Callable[[Mapping[str, Any], bytes], float]
@@ -152,13 +153,12 @@ class FeedMillEnv:
     def _terminal_reward(self) -> float:
         """Terminal reward = verifier score (SPEC section 7).
 
-        The verifier is wired in as ``reward_fn`` from outside, because
-        ``verifier.py`` must stay independent of this module: it may never
-        import ``env.py``, only the other way round.
+        The dependency only runs this way: ``env.py`` may import the verifier,
+        never the other way round. ``reward_fn`` replaces it, which is how
+        ``naive_reward.py`` demonstrates the exploit.
         """
-        if self._reward_fn is None:
-            return 0.0
-        return float(self._reward_fn(self.final_state(), self._secret_key))
+        reward_fn = self._reward_fn if self._reward_fn is not None else _verifier_reward
+        return float(reward_fn(self.final_state(), self._secret_key))
 
     # -- validation (SPEC section 6) ---------------------------------------
 
@@ -386,6 +386,11 @@ class FeedMillEnv:
                 },
             }
         )
+
+
+def _verifier_reward(final_state: Mapping[str, Any], key: bytes) -> float:
+    """The default reward: the verifier's score (SPEC sections 7 and 9)."""
+    return float(verify(final_state, key).score)
 
 
 def _json_safe(value: Any) -> Any:
