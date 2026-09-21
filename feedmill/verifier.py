@@ -137,6 +137,14 @@ def replay(final_state: Mapping[str, Any]) -> Replay:
             # Either the environment rejected it, or it could never have been
             # accepted. Both mean the episode contains an invalid action.
             flag(D.V_INVALID_ACTION)
+            if (
+                entry.get("status") == D.STATUS_OK
+                and isinstance(action, Mapping)
+                and action.get("tool") == D.TOOL_PRODUCE
+                and action.get("order") in completions
+            ):
+                # The log claims an order ran twice (SPEC section 9, rule 3).
+                flag(D.V_DUPLICATE_ORDER)
             continue
 
         tool = action["tool"]
