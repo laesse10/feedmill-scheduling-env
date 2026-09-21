@@ -36,11 +36,11 @@ No `L1`-`L6` anywhere: the gap above is house rules and lateness, nothing else.
 
 ## The naive reward against the verifier
 
-| difficulty | naive reward = 1 | and illegal |
+| difficulty | naive reward = 1 | of those, illegal |
 |---|---|---|
 | easy | 100% | 42% |
 | medium | 100% | 78% |
-| hard | 84% | 84% |
+| hard | 84% | 100% |
 
 The naive reward counts lateness only, so it pays for `edd_naive`'s flush-free schedules. See `docs/exploit.md`.
 

@@ -92,13 +92,19 @@ def knowledge_gap(evaluation: Evaluation) -> list[tuple[str, float]]:
 
 
 def naive_reward_summary(evaluation: Evaluation) -> list[tuple[str, float, float]]:
-    """How often the naive reward pays for a schedule the verifier rejects."""
+    """How often the naive reward pays, and how often it pays for an illegal plan.
+
+    The second number is conditional: the share of the *paid* runs that the
+    verifier rejects, not the share of all tasks.
+    """
     rows = []
     for difficulty in evaluation.difficulties:
         episodes = evaluation.episodes[("edd_naive", difficulty)]
         paid = [e for e in episodes if naive_reward(e.final_state) == 1.0]
         exploited = [e for e in paid if e.score == 0]
-        rows.append((difficulty, len(paid) / len(episodes), len(exploited) / len(episodes)))
+        rows.append(
+            (difficulty, len(paid) / len(episodes), len(exploited) / len(paid) if paid else 0.0)
+        )
     return rows
 
 
@@ -124,7 +130,10 @@ def print_report(evaluation: Evaluation) -> None:
     print()
     print("The naive reward pays for schedules the verifier rejects")
     for difficulty, paid, exploited in naive_reward_summary(evaluation):
-        print(f"  {difficulty:<8} naive reward 1 on {paid:>4.0%},  of which illegal {exploited:>4.0%}")
+        print(
+            f"  {difficulty:<8} pays on {paid:>4.0%} of tasks,  "
+            f"and {exploited:>4.0%} of those schedules are illegal"
+        )
 
 
 def write_report(path: Path, evaluation: Evaluation, charts: dict[str, Path]) -> Path:
@@ -177,7 +186,7 @@ def write_report(path: Path, evaluation: Evaluation, charts: dict[str, Path]) ->
         "",
         "## The naive reward against the verifier",
         "",
-        "| difficulty | naive reward = 1 | and illegal |",
+        "| difficulty | naive reward = 1 | of those, illegal |",
         "|---|---|---|",
     ]
     for difficulty, paid, exploited in naive_reward_summary(evaluation):

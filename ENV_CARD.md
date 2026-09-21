@@ -114,8 +114,8 @@ everything below it.
 
 An agent rewarded only for punctuality converges on "never flush". Measured on
 `edd_naive` over the held-out set, that policy earns the naive reward on 100 %
-of easy, 100 % of medium and 84 % of hard tasks, and **42 % / 78 % / 84 %** of
-those runs are illegal. On hard tasks the most common failures are not
+of easy, 100 % of medium and 84 % of hard tasks, and **42 % / 78 % / 100 %** of
+those schedules are illegal. On hard tasks the most common failures are not
 carry-over but the line rules: ruminant feed on a PAP line and feed for a
 species on that species' own PAP line.
 
