@@ -34,6 +34,16 @@ Control (SPEC section 12): with the house rules removed the two agents take iden
 
 No `L1`-`L6` anywhere: the gap above is house rules and lateness, nothing else.
 
+## The naive reward ranks the agents backwards
+
+| agent | naive reward | verifier | naive (hard) | verifier (hard) |
+|---|---:|---:|---:|---:|
+| `edd_naive` | 95% | 26.7% | 84% | 0% |
+| `law_aware` | 92% | 45.3% | 77% | 14% |
+| `full_aware` | 92% | 91.3% | 75% | 74% |
+
+Under the naive reward the three agents are within three points of each other and the *worst* one leads, because flushes and lab holds cost time and lateness is all that reward can see. Under the verifier they separate cleanly. Training on the naive reward does not merely tolerate the illegal policy, it selects for it.
+
 ## The naive reward against the verifier
 
 | difficulty | naive reward = 1 | of those, illegal |

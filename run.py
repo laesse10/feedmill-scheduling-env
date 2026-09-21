@@ -108,6 +108,28 @@ def naive_reward_summary(evaluation: Evaluation) -> list[tuple[str, float, float
     return rows
 
 
+def reward_comparison(evaluation: Evaluation) -> list[tuple[str, float, float, float, float]]:
+    """Each agent under both rewards: (agent, naive all, verifier all, naive hard, verifier hard).
+
+    The naive reward and the verifier do not merely disagree about single
+    episodes; they rank the agents in opposite orders.
+    """
+    rows = []
+    for agent in AGENTS:
+        naive_all = verifier_all = 0.0
+        naive_hard = verifier_hard = float("nan")
+        for difficulty in evaluation.difficulties:
+            episodes = evaluation.episodes[(agent, difficulty)]
+            naive = sum(naive_reward(e.final_state) for e in episodes) / len(episodes)
+            naive_all += naive
+            verifier_all += evaluation.rate(agent, difficulty)
+            if difficulty == "hard":
+                naive_hard, verifier_hard = naive, evaluation.rate(agent, difficulty)
+        n = len(evaluation.difficulties)
+        rows.append((agent, naive_all / n, verifier_all / n, naive_hard, verifier_hard))
+    return rows
+
+
 def print_report(evaluation: Evaluation) -> None:
     seeds = evaluation.seeds
     print()
@@ -127,6 +149,11 @@ def print_report(evaluation: Evaluation) -> None:
     print("law_aware violations (it knows the law, not the house rules)")
     for code, count in evaluation.violations("law_aware").most_common():
         print(f"  {code:<24} {count:>4}")
+    print()
+    print("The naive reward ranks the agents backwards")
+    print(f"  {'agent':<12}{'naive reward':>14}{'verifier':>11}")
+    for agent, naive_all, verifier_all, _, _ in reward_comparison(evaluation):
+        print(f"  {agent:<12}{naive_all:>13.0%}{verifier_all:>11.0%}")
     print()
     print("The naive reward pays for schedules the verifier rejects")
     for difficulty, paid, exploited in naive_reward_summary(evaluation):
@@ -183,6 +210,24 @@ def write_report(path: Path, evaluation: Evaluation, charts: dict[str, Path]) ->
     lines += [
         "",
         "No `L1`-`L6` anywhere: the gap above is house rules and lateness, nothing else.",
+        "",
+        "## The naive reward ranks the agents backwards",
+        "",
+        "| agent | naive reward | verifier | naive (hard) | verifier (hard) |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    for agent, naive_all, verifier_all, naive_hard, verifier_hard in reward_comparison(evaluation):
+        lines.append(
+            f"| `{agent}` | {naive_all:.0%} | {verifier_all:.1%} | "
+            f"{naive_hard:.0%} | {verifier_hard:.0%} |"
+        )
+    lines += [
+        "",
+        "Under the naive reward the three agents are within three points of each "
+        "other and the *worst* one leads, because flushes and lab holds cost time "
+        "and lateness is all that reward can see. Under the verifier they separate "
+        "cleanly. Training on the naive reward does not merely tolerate the illegal "
+        "policy, it selects for it.",
         "",
         "## The naive reward against the verifier",
         "",

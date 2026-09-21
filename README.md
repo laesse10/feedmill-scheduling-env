@@ -114,6 +114,20 @@ tell the two schedules apart.
 **Exploit B** does not schedule anything. It writes the completion times into
 the derived fields. The naive reward reads exactly those fields.
 
+Scoring the same three baselines both ways shows the real damage:
+
+| agent | naive reward | verifier |
+|---|---:|---:|
+| `edd_naive` | **95 %** | 26.7 % |
+| `law_aware` | 92 % | 45.3 % |
+| `full_aware` | 92 % | **91.3 %** |
+
+The naive reward ranks them backwards. A flush costs 15 minutes and a lab
+hold up to 120, so obeying the rules makes you later, and lateness is all
+that reward can see. Removing a flush can never lower it, so "never flush"
+weakly dominates flushing: training on this reward does not merely tolerate
+the illegal policy, it selects for it.
+
 **The fix** is `feedmill/verifier.py`: it replays the HMAC-chained log,
 recomputes every completion time and concentration, and never reads a derived
 field. Full story, with numbers, in [docs/exploit.md](docs/exploit.md).
