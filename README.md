@@ -185,7 +185,9 @@ Three invariants hold the design together.
    what makes exploit B score 0 without any tamper detection being involved.
 3. **Everything is deterministic.** The same seed produces the same task and
    the same `task_hash` in a fresh interpreter under any `PYTHONHASHSEED`, and
-   `python run.py` twice produces byte-identical reports and charts.
+   `python run.py` twice produces byte-identical reports and charts on the
+   same interpreter. The report is identical on any interpreter; the PNGs
+   are not, because matplotlib's text rendering differs between versions.
 
 ## Plugging in real data
 
