@@ -222,6 +222,7 @@ continuous rather than pass/fail.
 | verifier tests: initial 0, correct 1, invalid 0, written goal state 0 | `tests/test_verifier_required.py` |
 | one documented exploit, its fix and a proving test | `docs/exploit.md`, `tests/test_exploit.py` |
 | runs with one command | `python run.py` |
+| note of at most one page | `NOTE.md` |
 
 ## Known limits
 

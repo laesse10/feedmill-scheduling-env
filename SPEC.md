@@ -346,6 +346,7 @@ and house rules could be converted into this format without code changes.
 | verifier tests: initial 0, correct 1, invalid 0, written goal state 0 | `tests/test_verifier_required.py` |
 | one documented exploit, fix and proving test | `docs/exploit.md`, `tests/test_exploit.py`, section 10 |
 | runs with one command | `python run.py` |
+| note of at most one page | `NOTE.md` |
 
 ---
 
