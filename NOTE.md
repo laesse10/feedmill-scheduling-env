@@ -1,32 +1,36 @@
 # Note
 
-**Feed mill scheduling:** a day of orders on one or two lines, under EU feed law
-and a mill's own house rules. Hard to solve, cheap to check. `python run.py`
-reproduces everything below.
+## What this is
+
+A feed mill produces feed in batches on a line, and every batch leaves a residue
+that contaminates the next. The **order** you produce in therefore decides
+whether the feed is legal to sell: run broiler feed containing a coccidiostat
+straight before laying-hen feed, and the hen feed carries 2 % of that drug
+against an EU limit of 1 %. A 15-minute flush clears it.
+
+An agent schedules a day of orders on one or two lines — each order before its
+due time, each batch inside the EU carry-over limits and animal-protein bans, the
+mill's house rules followed. Finding a good order is combinatorial; checking a
+finished one is a replay. The rules are real EU law, so "correct" is defined
+outside my own code. `python run.py` reproduces everything below.
 
 ## Decisions
 
-**The task.** Sequence-dependent carry-over makes good schedules combinatorial; a
-finished one is just a replay. The constraints are real EU law, so "correct" has
-a definition outside my own code — which I could check, and did.
-
-**The verifier is independent by construction.** It never imports the
-environment; canonical JSON, the HMAC chain, the carry-over update and production
-time are written a second time from the specification, so a mistake in one
-arithmetic cannot hide in both.
-
-**It never reads the derived fields.** Completion times are recomputed by
-replaying an HMAC-chained log anchored at the task hash, which makes a forged
-summary worthless rather than merely detectable.
-
-**The environment enforces only physical possibility.** A wrong die is rejected;
-a contaminating sequence is not — an agent has to be able to make real mistakes.
-Tasks are solvable by construction: a valid schedule is planted first and the due
-times derived from it.
+- **The verifier is written twice.** It never imports the environment, and
+  re-derives canonical JSON, the log signature, the contamination update and
+  batch durations from the specification; shared arithmetic would hide a mistake
+  from both at once.
+- **It ignores what the environment reports.** The final state carries a summary
+  of completion times; the verifier never reads it, replaying a signed log
+  instead. An agent may rewrite that summary freely and nothing changes.
+- **The environment permits illegal schedules**, refusing only what a press
+  physically cannot do. An agent has to be able to make the real mistake.
 
 ## Results
 
-Held-out seeds 10000–10099, 100 tasks per variant, scored by the verifier:
+Three baselines, all earliest-due-date, differing only in what they may consider:
+`edd_naive` knows nothing, `law_aware` knows EU law, `full_aware` also knows the
+house rules. 100 held-out tasks per difficulty:
 
 | agent | easy | medium | hard | all |
 |---|---:|---:|---:|---:|
@@ -34,35 +38,33 @@ Held-out seeds 10000–10099, 100 tasks per variant, scored by the verifier:
 | `law_aware` | 84 % | 43 % | 13 % | 46.7 % |
 | `full_aware` | 100 % | 100 % | 72 % | 90.7 % |
 
-One policy behind three knowledge flags, so the difference measures knowledge and
-not engineering: **+16 / +57 / +59 points**. `law_aware` breaks no legal rule on
-any of the 300 tasks. Control: remove the house rules and the two agents emit
-identical actions, so the gap is exactly 0.
+One policy behind three flags, so the gap measures knowledge and not code
+quality: **+16 / +57 / +59 points**. Control: remove the house rules and the last
+two produce identical schedules, putting the gap at exactly 0.
 
-The exploit **ranks the agents backwards** — `edd_naive` takes 95 % of the naive
-reward against `full_aware`'s 91 %, and 21.3 % against 90.7 % on the verifier. A
-flush costs 15 minutes and lateness is all that reward sees, so removing one can
-never lower it: training on it selects for the illegal policy.
+**The obvious reward is worse than useless.** "Did every order finish on time?"
+scores the three at 95 %, 92 % and 91 % — the *worst* agent wins, because a flush
+costs 15 minutes and lateness is all that reward sees. Removing a flush can never
+lower it, so training on it selects for the illegal policy. The verifier scores
+the same three 21 %, 47 % and 91 %.
 
-Of eleven bugs injected into the verifier, ten fail the 251 tests. Checking the
-citations found an error in my own specification — sheep feed sat at 3 % where
-Annex I of Directive 2002/32/EC puts small ruminants at 1 % — which the verifier
-had propagated deterministically and no test could have caught.
+**Checking the law found an error in my own specification:** sheep feed sat at
+3 % where Annex I of Directive 2002/32/EC puts small ruminants at 1 %. No test
+could have caught it — every test agreed with the same wrong constant.
 
 ## Limits
 
-- **The instances are synthetic.** The generator rejects draws it finds
-  uninteresting and guarantees solvability, which is exactly the irregularity a
-  real order book would have supplied.
-- The HMAC key lives in the agent's process; isolation is a deployment property.
-- Due times derive from the planted schedule, so they leak it to within the jitter.
-- House rules are generated: a mechanism, not the value of real ones.
-- Pass/fail scoring says nothing about how close a failure came.
+- **The tasks are generated, not real.** The generator discards draws it finds
+  uninteresting and guarantees solvability; a real order book is lumpier, and
+  sometimes impossible.
+- The signing key sits in the agent's process; isolation needs a separate one.
+- Due times derive from the hidden solution, leaking it to within half an hour.
+- House rules are invented: the experiment shows a mechanism, not their worth.
+- Scoring is pass/fail — one minute late scores what poisoning a herd scores.
 
 ## Next steps
 
-Rules read out of documents rather than handed over in the observation. A real
-order book through the task schema with the solvability guarantee dropped — an
-infeasible day is real, and "which order do you sacrifice" cannot be trained
-here. Carry-over measured per substance and plant, a shaped reward beside the
-binary one, and the environment in its own process.
+Give the agent the rules as documents instead of structured fields, and infer the
+unwritten ones from past schedules. Run a real order book through the task format
+without the solvability guarantee. Measure contamination per substance, and add a
+graded reward beside the binary one.
