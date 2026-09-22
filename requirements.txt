@@ -1,2 +1,7 @@
 matplotlib==3.10.3
 pytest==9.0.2
+
+# matplotlib 3.10.3 still calls pyparsing's camelCase API (oneOf, parseString),
+# which pyparsing 3.3 deprecates. Pinned one version back so that a fresh
+# install runs the suite without third-party deprecation warnings.
+pyparsing==3.2.3
