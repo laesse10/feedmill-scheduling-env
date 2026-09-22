@@ -4,9 +4,5 @@ __pycache__/
 .venv/
 venv/
 .DS_Store
-
-# The case study brief is not mine to publish, and every commit here uses
-# `git add -A`, so it is ignored by name and by extension rather than left
-# one careless stage away from the remote.
 TGDC_Case_Study.pdf
 *.pdf

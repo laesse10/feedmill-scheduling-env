@@ -219,7 +219,6 @@ continuous rather than pass/fail.
 | verifier tests: initial 0, correct 1, invalid 0, written goal state 0 | `tests/test_verifier_required.py` |
 | one documented exploit, its fix and a proving test | `docs/exploit.md`, `tests/test_exploit.py` |
 | runs with one command | `python run.py` |
-| note of at most one page | `NOTE.md` |
 
 ## Known limits
 
@@ -245,6 +244,40 @@ continuous rather than pass/fail.
   those tasks were solvable.
 - **The verifier is pass/fail.** A schedule that misses one due time by a
   minute scores the same as one that poisons a herd.
+
+## What a buyer would need next
+
+Roughly in the order that would change the most.
+
+1. **Rules from documents, not from the observation.** v1 hands the agent every
+   rule, structured and in one sentence. The real task is reading them out of
+   the regulation and the mill's own SOPs, and inferring the unwritten house
+   rules from historical schedules. That is the step that turns the knowledge
+   experiment above from a demonstration of a mechanism into a measurement of
+   something worth money.
+2. **The environment in its own process.** The key is reachable by
+   introspection today. A process or container boundary closes the one hole
+   the red team cannot, and changes no code here beyond how the key is handed
+   to the verifier.
+3. **Carry-over measured, not assumed.** One rate of 2 % for every substance
+   on every line is the largest single assumption in the model. Real rates
+   depend on the substance, the press and the transport route, and a plant can
+   measure them. Same for the flush size and the die change duration.
+4. **A shaped reward beside the binary one.** `verify` is pass/fail on purpose,
+   because that is what certification means. Training needs credit assignment,
+   and the replay already computes lateness in minutes and every concentration
+   as a fraction of its limit, so the shaped reward is a function over
+   `Replay` rather than new machinery.
+5. **A real order book.** The difficulty table is invented: order counts,
+   tonnages and slack were chosen to make three distinguishable variants, not
+   measured against a mill. A buyer's own day would recalibrate it, and the
+   task schema already accepts one.
+6. **A bigger mill.** One day, at most two lines, and time as the only cost.
+   Multi-day horizons, more lines, changeover and energy cost, partial
+   deliveries and a continuous objective are all outside v1.
+
+What would not need to change: the action space, the task schema, the log
+chain and the verifier's contract. Those are the parts a buyer builds against.
 
 ## Tests
 

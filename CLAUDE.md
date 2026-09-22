@@ -93,7 +93,7 @@ a polished core beats a half-finished stretch.
 8. **Docs.** `README.md` (what, one command, results table, the requirements
    trace from SPEC.md section 14, the legal basis table, how to plug in real
    data, the in-process key limit from SPEC.md section 8) and `ENV_CARD.md` (task, actions, difficulty distribution,
-   baseline success rates, known limits). Do NOT write `NOTE.md`; I write it.
+   baseline success rates, known limits).
 
 ## Working rules
 
