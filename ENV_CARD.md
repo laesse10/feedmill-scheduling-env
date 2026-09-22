@@ -149,9 +149,12 @@ compliance advice.
    levels; copper handled as a house rule rather than a legal maximum; no
    partial deliveries; no changeover cost beyond time. `SPEC.md` section 15
    lists every assumed number.
-5. **Legal citations are unverified** from inside this repository. `SPEC.md`
-   marks them `[VERIFY]`; they should be checked against EUR-Lex before anyone
-   relies on them.
+5. **Legal citations checked, with one gap.** The basis of L1, L2, L3 and L5,
+   the species classes of section 2.3 and the copper figures behind H6 were
+   verified against the consolidated texts; `SPEC.md` section 4 carries the
+   record. The post-2021 text of Annex IV of Regulation (EC) No 999/2001 could
+   not be retrieved, so L4 is a recorded simplification rather than a verified
+   rule, and it differs from strict dedication for exactly one feed.
 6. **Pass/fail only**, so the reward carries no information about *how close* a
    failed schedule was.
 

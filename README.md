@@ -152,8 +152,11 @@ House rules (H1-H6) are company-specific and only ever tighten the law. They
 are generated, so the experiment above shows the *mechanism* by which private
 knowledge pays off, not the value of any real mill's rules.
 
-> The citations are reproduced from `SPEC.md`, which marks them `[VERIFY]`.
-> They have not been checked against EUR-Lex from inside this repository.
+> Checked against the consolidated texts on legislation.gov.uk, because
+> EUR-Lex blocks automated retrieval; `SPEC.md` section 4 carries the record.
+> One gap: the post-2021 text of Annex IV of Regulation (EC) No 999/2001 could
+> not be retrieved, so L4 is a documented simplification of it rather than a
+> verified rule.
 
 ## How the pieces fit
 

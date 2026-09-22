@@ -2,7 +2,6 @@
 
 Single source of truth for domain and design.
 **[DECISION]** = deliberate design choice. **[ASSUMPTION]** = plausible value, not measured.
-**[VERIFY]** = check against the legal text before submission.
 
 ---
 
@@ -57,9 +56,12 @@ target feed** (target feed = 1.0). This is how EU carry-over limits are defined.
 | `sheep` | sheep | yes | – | sensitive | 4 |
 | `horse` | horse | no | – | sensitive | 6 |
 
-**[VERIFY]** class of sheep and horse per substance in Annex I of Directive 2002/32/EC.
-Horses are known to be highly sensitive to ionophores such as monensin, so they
-are classed `sensitive`.
+Classes taken from Annex I of Directive 2002/32/EC as amended by Regulation
+(EU) No 574/2011, which places equine species, small ruminants (sheep and
+goat), bovine, dairy cattle, laying birds and withdrawal feed in the strict
+1.25 mg/kg tier for monensin sodium, and all other species in the 3.75 mg/kg
+tier. `horse`, `sheep`, `dairy`, `layer` and `broiler_withdrawal` are therefore
+`sensitive`; the pig feeds are `less_sensitive`.
 
 ### 2.4 Lines
 
@@ -120,12 +122,49 @@ Examples with r = 2 %:
 | Copper maximum content per species (e.g. piglets up to 4 weeks after weaning 150 mg/kg, sheep 15 mg/kg) | Commission Implementing Regulation (EU) 2018/1039 | At 2 % carry-over, 150 mg/kg becomes 3 mg/kg, far below the sheep maximum. Copper is therefore handled as a stricter **house rule** (H6), which shows the difference between law and company practice. |
 | Ban on feeding catering waste to farmed animals | Regulation (EC) No 1069/2009, Article 11(1)(b) | Concerns ingredients, not sequencing. Candidate for the document-checking next step. |
 | Fishmeal in feed for non-ruminants, milk replacers for unweaned ruminants | Regulation (EC) No 999/2001, Annex IV, Chapter II and IV | Adds feeds without adding a new rule type. |
-| Veterinary prescription required for medicated feed | Regulation (EU) 2019/4, Article 16 **[VERIFY article number]** | Document-level check, natural next step. |
+| Veterinary prescription required for medicated feed | Regulation (EU) 2019/4, Article 16 ("Prescription") | Document-level check, natural next step. |
 | General feed hygiene, HACCP, traceability | Regulation (EC) No 183/2005 | Process requirement, not a schedule property. |
 | Switzerland | Swiss feed ordinances (Futtermittel-Verordnung) | Rules differ in detail; EU law is used as reference. |
 
-**[VERIFY]** before submission: every row above against EUR-Lex, especially the
-exact conditions of Regulation (EU) 2021/1372 for compound feed plants (L4, L5).
+**Verification record.** Checked against the consolidated texts on
+legislation.gov.uk; EUR-Lex blocks automated retrieval.
+
+- **L1** — Regulation (EU) No 574/2011 amending Annex I of Directive
+  2002/32/EC, section VII entry 6 (monensin sodium): 1.25 mg/kg for "equine
+  species, dogs, small ruminants (sheep and goat), ducks, bovine, dairy cattle,
+  laying birds" and for withdrawal feed, 3.75 mg/kg for "other animal species".
+  The two tiers stand in exactly the 1:3 ratio used here and correspond to 1 %
+  and 3 % of a 125 mg/kg authorisation in target feed.
+- **L2** — Regulation (EU) 2019/4 Article 7 ("Cross-contamination"): 7(1)
+  requires operators to avoid it; 7(3) directs the Commission to set "specific
+  maximum levels of cross-contamination for active substances in non-target
+  feed" for the antimicrobials in Annex II. Delegated Regulation (EU) 2024/1229
+  did so for 24 substances, applying from 20 May 2025. The single 1 % limit
+  here stays a **[DECISION]** simplification of those levels.
+- **L3** — Regulation (EC) No 999/2001 Article 7 ("Prohibitions concerning
+  animal feeding"), 7(1): "The feeding to ruminants of protein derived from
+  animals shall be prohibited." 7(2) extends the prohibition to non-ruminants
+  in accordance with Annex IV.
+- **L5** — Regulation (EC) No 1069/2009 Article 11 ("Restrictions on use"),
+  11(1)(a) prohibits "the feeding of terrestrial animals of a given species
+  other than fur animals with processed animal protein derived from the bodies
+  or parts of bodies of animals of the same species".
+- **Copper** (not modelled, see the table above) — Commission Implementing
+  Regulation (EU) 2018/1039: 150 mg/kg for piglets up to 4 weeks after weaning,
+  15 mg/kg for ovine. At 2 % carry-over that is 3 mg/kg, which is why copper is
+  a house rule here and not a legal limit.
+
+**[DECISION]** L4 is modelled as a one-directional constraint: a PAP feed may
+only run on a line of its PAP type, while other feeds may run there subject to
+L3 and L5. Annex IV of Regulation (EC) No 999/2001 is stricter. For the
+aquaculture regime that Regulation (EU) 2021/1372 extends to poultry and pigs,
+the compound feed "shall be produced in establishments ... dedicated exclusively
+to the production of feed for aquaculture animals", with a derogation where
+facilities are physically separated. Read into this model, a PAP line stands for
+a plant dedicated to one target species. The two readings agree for every feed
+in the catalog except `horse`, which this model permits on a PAP line and strict
+dedication would not. The post-2021 text of Annex IV could not be retrieved, so
+the simplification is recorded here rather than tightened on an inference.
 
 ---
 
@@ -310,10 +349,24 @@ and house rules could be converted into this format without code changes.
 
 ---
 
-## 15. Assumptions to verify
+## 15. Assumptions and their status
+
+Plant values, assumed and still unmeasured:
 
 - Carry-over rate 2 %, flush 1 t / 15 min, die change 45 min, line rate 20 t/h.
 - One carry-over rate for all substances; real rates depend on substance and plant.
-- L2 uses a single 1 % limit instead of substance-specific limits.
-- Species classes in 2.3.
-- Every legal reference in section 4.
+
+Deliberate simplifications, recorded in section 4:
+
+- L2 uses a single 1 % limit instead of the substance-specific levels of
+  Delegated Regulation (EU) 2024/1229.
+- L4 is modelled as a one-directional line constraint.
+
+Checked against the legal text (see the verification record in section 4):
+
+- The species classes of section 2.3.
+- The legal basis of L1, L2, L3 and L5, and the copper figures behind H6.
+
+Cited but not checked: the post-2021 text of Annex IV of Regulation (EC)
+No 999/2001, and the rows of the "related law" table other than Regulation
+(EU) 2019/4.
