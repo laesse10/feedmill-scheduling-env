@@ -48,6 +48,15 @@ class Evaluation:
     def overall(self, agent: str) -> float:
         return sum(self.rate(agent, d) for d in self.difficulties) / len(self.difficulties)
 
+    def failed(self, agent: str) -> int:
+        """How many tasks this agent did not solve, across every difficulty."""
+        return sum(
+            1
+            for difficulty in self.difficulties
+            for episode in self.episodes[(agent, difficulty)]
+            if episode.score == 0
+        )
+
     @property
     def tasks(self) -> int:
         return len(self.seeds) * len(self.difficulties)
@@ -161,7 +170,7 @@ def print_report(evaluation: Evaluation) -> None:
     print("  Feed mill scheduling environment")
     print(
         f"  held-out seeds {seeds.start}-{seeds.stop - 1} · "
-        f"{len(seeds)} tasks per difficulty · scored by the verifier"
+        f"{len(seeds)} tasks per difficulty · verifier score"
     )
     print()
     print(f"  {'SUCCESS RATE':<28}{columns([*difficulties, 'all'])}")
@@ -177,22 +186,25 @@ def print_report(evaluation: Evaluation) -> None:
 
     print()
     counts = evaluation.violations("law_aware").most_common()
-    print(f"  {'WHAT LAW_AWARE GETS WRONG':<28}{'count':>9}")
+    print(f"  {'WHAT LAW_AWARE GETS WRONG':<28}{'tasks':>9}")
     print(rule)
     for code, count in counts:
         print(f"  {code:<28}{count:>9}")
-    print(f"  no L1-L6 in {len(seeds) * len(difficulties)} tasks: "
-          f"it breaks no legal rule, only house rules")
+    print(
+        f"  it fails {evaluation.failed('law_aware')} of {evaluation.tasks} tasks, "
+        f"every one on a house rule or a due time —"
+    )
+    print("  it breaks no legal rule anywhere")
 
     print()
     print(f"  {'THE NAIVE REWARD':<28}{columns(['naive', 'verifier'])}")
     print(rule)
     for agent, naive_all, verifier_all, _, _ in reward_comparison(evaluation):
-        print(f"  {agent:<28}{columns([f'{naive_all:.0%}', f'{verifier_all:.0%}'])}")
+        print(f"  {agent:<28}{columns([f'{naive_all:.1%}', f'{verifier_all:.1%}'])}")
     illegal = ", ".join(
-        f"{share:.0%} {difficulty}" for difficulty, _, share in naive_reward_summary(evaluation)
+        f"{share:.0%} ({difficulty})" for difficulty, _, share in naive_reward_summary(evaluation)
     )
-    print("  it ranks them backwards, and of the schedules it pays for,")
+    print("  it ranks them backwards; of the edd_naive schedules it pays for,")
     print(f"  {illegal} are illegal")
     print()
 
