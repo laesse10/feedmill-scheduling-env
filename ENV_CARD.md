@@ -13,7 +13,7 @@ are measured on held-out seeds 10000-10099 and reproduced by `python run.py`.
 | **Episode length** | 6 to 27 actions for a competent policy; budget 200 |
 | **Verification** | Independent replay of a tamper-evident log, score 1 or 0 |
 | **Dependencies** | Python 3.11+, `matplotlib`, `pytest`. No network, no API keys |
-| **Speed** | 0.2 ms to generate a hard task; 2.2 ms to generate, play and verify one |
+| **Speed** | 0.2 ms to generate a hard task; 2.1 ms to generate, play and verify a hard episode, 1.3 ms averaged over the three difficulties as `run.py` reports it |
 | **Determinism** | Same seed, same task hash, in any process; identical report bytes |
 | **Licence of the domain** | EU feed law, public; see the legal basis table in the README |
 
@@ -73,6 +73,37 @@ violation codes attached for diagnosis: `L1_COCCIDIOSTAT`, `L2_ANTIMICROBIAL`,
 
 There is no partial credit. A schedule one minute late scores what a schedule
 that contaminates layer feed scores.
+
+## API conformance
+
+Gymnasium-*style*, not Gymnasium-*conformant*, and deliberately so: SPEC section 7
+specifies the signature without the dependency. What that means precisely:
+
+| convention | here |
+|---|---|
+| `step() -> (obs, reward, terminated, truncated, info)` | yes, with termination and truncation properly separated |
+| `reset() -> (obs, info)` | **no** — returns the observation alone, and `reset(seed, difficulty)` selects a task rather than seeding an RNG |
+| `action_space` / `observation_space` | **no** — actions are JSON tool calls and observations nested dicts; `llm_adapter.TOOL_SCHEMAS` carries the machine-readable action contract instead |
+| `render()` / `close()` | **no** — `gantt.py` draws from the final state, and there is nothing to close |
+| `metadata`, `spec`, `reward_range` | **no** |
+| built-in step limit | yes — truncates at `max_steps`, and every later action is rejected |
+| determinism under a seed | yes — same seed, same task hash, in any process |
+| instance independence | yes — eight threads produce the same scores as serial, and no module-level table is mutated by a run |
+
+The cost is that nothing from the Gymnasium ecosystem plugs in unmodified:
+wrappers, `VectorEnv` and any algorithm that introspects spaces need an adapter
+of perhaps thirty lines.
+
+Three things a training run would want and this does not have:
+
+- **a shaped reward.** The verifier is pass/fail by design, so there is no
+  gradient between "one minute late" and "poisoned the herd". The replay already
+  computes lateness in minutes and every concentration as a fraction of its
+  limit, so the inputs exist; only the function is missing.
+- **mid-episode save and restore**, which rules out tree search, backtracking
+  rollouts and best-of-n with rollback.
+- **a vectorised interface.** Parallelism works per process instead, which at
+  1.3 ms per episode and with verified thread safety is usually enough.
 
 ## Difficulty distribution
 
