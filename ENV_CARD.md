@@ -84,8 +84,8 @@ that contaminates layer feed scores.
 | due-time slack | x 2.0 | x 1.4 | x 1.15 |
 | house rules | 0 or 1 (46 % / 54 %) | exactly 2 | 3 or 4 (45 % / 55 %) |
 | feeds | no PAP feeds | no PAP feeds | all, incl. the PAP feed matching the line |
-| planted plan | 8.9 actions, 426 min | 13.5 actions, 804 min | 21.1 actions, 790 min |
-| flushes / die changes in it | 0.7 / 1.7 | 1.6 / 1.9 | 2.5 / 3.3 |
+| planted plan | 9.1 actions, 428 min | 13.7 actions, 808 min | 21.2 actions, 793 min |
+| flushes / die changes in it | 0.8 / 1.7 | 1.8 / 1.9 | 2.7 / 3.3 |
 
 Every task is **solvable by construction**: the generator builds a valid
 schedule first and derives the due times from it. The planted schedule is never
@@ -97,24 +97,24 @@ Held-out seeds 10000-10099, 100 tasks per difficulty.
 
 | agent | knows | easy | medium | hard | all |
 |---|---|---:|---:|---:|---:|
-| `edd_naive` | nothing | 58 % | 22 % | 0 % | 26.7 % |
-| `law_aware` | EU law L1-L5 | 83 % | 39 % | 14 % | 45.3 % |
-| `full_aware` | law + house rules | 100 % | 100 % | 74 % | 91.3 % |
+| `edd_naive` | nothing | 48 % | 16 % | 0 % | 21.3 % |
+| `law_aware` | EU law L1-L5 | 84 % | 43 % | 13 % | 46.7 % |
+| `full_aware` | law + house rules | 100 % | 100 % | 72 % | 90.7 % |
 
 The three are one policy behind three knowledge flags, so the differences are
 knowledge and not engineering. `law_aware` commits no legal violation on any of
-the 300 tasks. `full_aware`'s remaining failures are 25 late tasks and one
+the 300 tasks. `full_aware`'s remaining failures are 27 late tasks and one
 stranded sequence ban, all caused by earliest-due-date having no lookahead, not
 by the tasks being unsolvable.
 
-Headroom for a learned policy: the whole gap between 91.3 % and 100 %, plus
+Headroom for a learned policy: the whole gap between 90.7 % and 100 %, plus
 everything below it.
 
 ## Reward hacking
 
 An agent rewarded only for punctuality converges on "never flush". Measured on
 `edd_naive` over the held-out set, that policy earns the naive reward on 100 %
-of easy, 100 % of medium and 84 % of hard tasks, and **42 % / 78 % / 100 %** of
+of easy, 100 % of medium and 84 % of hard tasks, and **52 % / 84 % / 100 %** of
 those schedules are illegal. On hard tasks the most common failures are not
 carry-over but the line rules: ruminant feed on a PAP line and feed for a
 species on that species' own PAP line.

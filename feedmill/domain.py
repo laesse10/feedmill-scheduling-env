@@ -431,7 +431,10 @@ FEED_CATALOG: tuple[Feed, ...] = (
     Feed("pig_medicated", "pig", False, (ANTIMICROBIAL,), CLASS_LESS_SENSITIVE, 4),
     Feed("pig_poultrypap", "pig", False, (PAP_POULTRY_SUBSTANCE,), CLASS_LESS_SENSITIVE, 4),
     Feed("dairy", "cattle", True, (), CLASS_SENSITIVE, 6),
-    Feed("sheep", "sheep", True, (), CLASS_LESS_SENSITIVE, 4),
+    # Annex I of Directive 2002/32/EC (as amended by Regulation (EU) No 574/2011)
+    # puts "small ruminants (sheep and goat)" in the 1.25 mg/kg tier for monensin,
+    # the same tier as equidae and dairy cattle, which is the 1 % class here.
+    Feed("sheep", "sheep", True, (), CLASS_SENSITIVE, 4),
     Feed("horse", "horse", False, (), CLASS_SENSITIVE, 6),
 )
 

@@ -31,13 +31,13 @@ Held-out seeds 10000-10099, 100 tasks per difficulty, scored by the verifier.
 
 | agent | easy | medium | hard | all variants |
 |---|---:|---:|---:|---:|
-| `edd_naive` — earliest due date, never flushes | 58 % | 22 % | 0 % | **26.7 %** |
-| `law_aware` — adds EU law (L1-L5) | 83 % | 39 % | 14 % | **45.3 %** |
-| `full_aware` — adds the mill's house rules | 100 % | 100 % | 74 % | **91.3 %** |
+| `edd_naive` — earliest due date, never flushes | 48 % | 16 % | 0 % | **21.3 %** |
+| `law_aware` — adds EU law (L1-L5) | 84 % | 43 % | 13 % | **46.7 %** |
+| `full_aware` — adds the mill's house rules | 100 % | 100 % | 72 % | **90.7 %** |
 
 The three share one policy and differ only in what they are allowed to know,
 so the gap between the last two measures knowledge and not implementation
-quality. It is **+17 / +61 / +60 points**. `law_aware` breaks no legal rule on
+quality. It is **+16 / +57 / +59 points**. `law_aware` breaks no legal rule on
 any of the 300 tasks; everything it loses, it loses to house rules and
 lateness. With the house rules removed the two agents emit identical actions
 on every task, so the control gap is exactly 0 (SPEC section 12).
@@ -123,9 +123,9 @@ Scoring the same three baselines both ways shows the real damage:
 
 | agent | naive reward | verifier |
 |---|---:|---:|
-| `edd_naive` | **95 %** | 26.7 % |
-| `law_aware` | 92 % | 45.3 % |
-| `full_aware` | 92 % | **91.3 %** |
+| `edd_naive` | **95 %** | 21.3 % |
+| `law_aware` | 92 % | 46.7 % |
+| `full_aware` | 91 % | **90.7 %** |
 
 The naive reward ranks them backwards. A flush costs 15 minutes and a lab
 hold up to 120, so obeying the rules makes you later, and lateness is all
@@ -238,7 +238,7 @@ continuous rather than pass/fail.
 - **One carry-over rate for every substance and line**, a single 1 % limit for
   all antimicrobials, and no copper limit in law (it appears as house rule H6).
   SPEC section 15 lists every assumed number.
-- **The baselines are greedy.** `full_aware` still loses 25 of 300 held-out
+- **The baselines are greedy.** `full_aware` still loses 27 of 300 held-out
   tasks to lateness and 1 to a sequence ban it strands at the end of a line,
   because earliest-due-date has no lookahead. The planted solutions prove
   those tasks were solvable.

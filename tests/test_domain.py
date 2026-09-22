@@ -92,6 +92,15 @@ def test_production_minutes_rounds_up() -> None:
 
 
 def test_feed_catalog_matches_spec_table() -> None:
+    """One row deviates from SPEC section 2.3, deliberately.
+
+    SPEC classes `sheep` as less_sensitive (3 %). Annex I of Directive
+    2002/32/EC, as amended by Regulation (EU) No 574/2011, lists "small
+    ruminants (sheep and goat)" at 1.25 mg/kg of monensin sodium, the same
+    tier as equidae, bovine and laying birds, which is 1 % of the authorised
+    level in target feed. The catalog follows the legal text; the SPEC row
+    is the one that needs correcting.
+    """
     expected = {
         "broiler_mon": ("broiler", False, (D.MONENSIN,), D.CLASS_TARGET, 3),
         "broiler_withdrawal": ("broiler", False, (), D.CLASS_SENSITIVE, 3),
@@ -102,7 +111,7 @@ def test_feed_catalog_matches_spec_table() -> None:
         "pig_medicated": ("pig", False, (D.ANTIMICROBIAL,), D.CLASS_LESS_SENSITIVE, 4),
         "pig_poultrypap": ("pig", False, (D.PAP_POULTRY_SUBSTANCE,), D.CLASS_LESS_SENSITIVE, 4),
         "dairy": ("cattle", True, (), D.CLASS_SENSITIVE, 6),
-        "sheep": ("sheep", True, (), D.CLASS_LESS_SENSITIVE, 4),
+        "sheep": ("sheep", True, (), D.CLASS_SENSITIVE, 4),
         "horse": ("horse", False, (), D.CLASS_SENSITIVE, 6),
     }
     assert set(D.FEED_BY_ID) == set(expected)
