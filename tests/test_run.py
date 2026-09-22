@@ -23,8 +23,15 @@ def test_the_default_run_prints_the_table_and_writes_the_outputs(tmp_path, capsy
     printed = capsys.readouterr().out
     for agent in AGENTS:
         assert agent in printed
-    assert "Value of company knowledge" in printed
-    assert "law_aware violations" in printed
+    assert "SUCCESS RATE" in printed
+    assert "value of company knowledge" in printed
+    assert "WHAT LAW_AWARE GETS WRONG" in printed
+    assert "THE NAIVE REWARD" in printed
+    assert "PERFORMANCE" in printed
+    assert "episodes" in printed and "ms per episode" in printed
+    assert not any(line != line.rstrip() for line in printed.splitlines()), (
+        "no trailing whitespace in the report"
+    )
 
     report = tmp_path / "results.md"
     assert report.exists()

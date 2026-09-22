@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -46,6 +47,18 @@ class Evaluation:
 
     def overall(self, agent: str) -> float:
         return sum(self.rate(agent, d) for d in self.difficulties) / len(self.difficulties)
+
+    @property
+    def tasks(self) -> int:
+        return len(self.seeds) * len(self.difficulties)
+
+    @property
+    def episodes_played(self) -> int:
+        return sum(len(runs) for runs in self.episodes.values())
+
+    @property
+    def actions_taken(self) -> int:
+        return sum(e.steps for runs in self.episodes.values() for e in runs)
 
     def violations(self, agent: str) -> Counter:
         counts: Counter = Counter()
@@ -131,36 +144,73 @@ def reward_comparison(evaluation: Evaluation) -> list[tuple[str, float, float, f
 
 
 def print_report(evaluation: Evaluation) -> None:
+    """One screen: the table, what the loser gets wrong, and the broken reward."""
     seeds = evaluation.seeds
+    difficulties = evaluation.difficulties
+    rule = "  " + "-" * 62
+    knows = {
+        "edd_naive": "knows nothing",
+        "law_aware": "+ EU law",
+        "full_aware": "+ house rules",
+    }
+
+    def columns(values: Sequence[str]) -> str:
+        return "".join(f"{v:>9}" for v in values)
+
     print()
-    print("Feed mill scheduling environment")
+    print("  Feed mill scheduling environment")
     print(
-        f"Held-out seeds {seeds.start}-{seeds.stop - 1}, "
-        f"{len(seeds)} tasks per difficulty, verifier score"
+        f"  held-out seeds {seeds.start}-{seeds.stop - 1} · "
+        f"{len(seeds)} tasks per difficulty · scored by the verifier"
     )
     print()
-    for row in results_table(evaluation):
-        print(row)
+    print(f"  {'SUCCESS RATE':<28}{columns([*difficulties, 'all'])}")
+    print(rule)
+    for agent in AGENTS:
+        cells = [f"{evaluation.rate(agent, d):.0%}" for d in difficulties]
+        cells.append(f"{evaluation.overall(agent):.1%}")
+        print(f"  {agent:<14}{knows.get(agent, ''):<14}{columns(cells)}")
     print()
-    print("Value of company knowledge (full_aware - law_aware)")
-    for difficulty, gap in knowledge_gap(evaluation):
-        print(f"  {difficulty:<8} {gap:+.0%}")
+    gap = [f"{100 * g:+.0f}" for _, g in knowledge_gap(evaluation)]
+    print(f"  {'value of company knowledge':<28}{columns(gap)}  points")
+    print("  (full_aware - law_aware)")
+
     print()
-    print("law_aware violations (it knows the law, not the house rules)")
-    for code, count in evaluation.violations("law_aware").most_common():
-        print(f"  {code:<24} {count:>4}")
+    counts = evaluation.violations("law_aware").most_common()
+    print(f"  {'WHAT LAW_AWARE GETS WRONG':<28}{'count':>9}")
+    print(rule)
+    for code, count in counts:
+        print(f"  {code:<28}{count:>9}")
+    print(f"  no L1-L6 in {len(seeds) * len(difficulties)} tasks: "
+          f"it breaks no legal rule, only house rules")
+
     print()
-    print("The naive reward ranks the agents backwards")
-    print(f"  {'agent':<12}{'naive reward':>14}{'verifier':>11}")
+    print(f"  {'THE NAIVE REWARD':<28}{columns(['naive', 'verifier'])}")
+    print(rule)
     for agent, naive_all, verifier_all, _, _ in reward_comparison(evaluation):
-        print(f"  {agent:<12}{naive_all:>13.0%}{verifier_all:>11.0%}")
+        print(f"  {agent:<28}{columns([f'{naive_all:.0%}', f'{verifier_all:.0%}'])}")
+    illegal = ", ".join(
+        f"{share:.0%} {difficulty}" for difficulty, _, share in naive_reward_summary(evaluation)
+    )
+    print("  it ranks them backwards, and of the schedules it pays for,")
+    print(f"  {illegal} are illegal")
     print()
-    print("The naive reward pays for schedules the verifier rejects")
-    for difficulty, paid, exploited in naive_reward_summary(evaluation):
-        print(
-            f"  {difficulty:<8} pays on {paid:>4.0%} of tasks,  "
-            f"and {exploited:>4.0%} of those schedules are illegal"
-        )
+
+
+def print_performance(evaluation: Evaluation, evaluating: float, total: float) -> None:
+    """What it cost to produce the numbers above."""
+    per_episode = 1000 * evaluating / max(evaluation.episodes_played, 1)
+    print("  PERFORMANCE")
+    print("  " + "-" * 62)
+    print(
+        f"  {evaluation.tasks:,} tasks generated · {evaluation.episodes_played:,} episodes"
+        f" · {evaluation.actions_taken:,} actions"
+    )
+    print(
+        f"  {evaluating:.1f} s to generate, play and verify "
+        f"({per_episode:.1f} ms per episode) · {total:.1f} s total"
+    )
+    print()
 
 
 def write_report(path: Path, evaluation: Evaluation, charts: dict[str, Path]) -> Path:
@@ -308,20 +358,20 @@ def write_charts(out_dir: Path, task: D.Task) -> dict[str, Path]:
 def run_task_file(path: Path, out_dir: Path) -> int:
     task = D.Task.from_json(json.loads(path.read_text()))
     print()
-    print(f"Task file {path}")
+    print(f"  {task.task_id}   ({path})")
     print(
-        f"  {task.task_id}: {len(task.orders)} orders, {len(task.lines)} line(s), "
-        f"{len(task.house_rules)} house rule(s), {len(task.feeds)} feeds in the catalog"
+        f"  {len(task.orders)} orders · {len(task.lines)} line(s) · "
+        f"{len(task.house_rules)} house rule(s) · {len(task.feeds)} feeds"
     )
-    print(f"  task_hash {task.task_hash}")
+    print(f"  task_hash {task.task_hash[:32]}...")
     print()
-    print(f"{'agent':<12}{'score':>7}  violations")
-    print("-" * 60)
+    print(f"  {'AGENT':<14}{'SCORE':>7}   violations")
+    print("  " + "-" * 62)
     best: EpisodeResult | None = None
     for name, make in AGENTS.items():
         episode = run_episode(make(), task)
-        codes = ", ".join(episode.violations) if episode.violations else "-"
-        print(f"{name:<12}{episode.score:>7}  {codes}")
+        codes = ", ".join(episode.violations) if episode.violations else "none"
+        print(f"  {name:<14}{episode.score:>7}   {codes}")
         if best is None or episode.score > best.score:
             best = episode
 
@@ -333,7 +383,8 @@ def run_task_file(path: Path, out_dir: Path) -> int:
         result=VerificationResult(best.score, best.violations),
     )
     print()
-    print(f"Wrote {chart}")
+    print(f"  wrote {chart}")
+    print()
     return 0
 
 
@@ -356,8 +407,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.task_file:
         return run_task_file(args.task_file, args.out)
 
+    started = time.perf_counter()
     seeds = range(args.seed_start, args.seed_start + args.seeds)
     evaluation = evaluate(seeds, args.difficulties)
+    evaluating = time.perf_counter() - started
     print_report(evaluation)
 
     charts: dict[str, Path] = {}
@@ -367,8 +420,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             charts = write_charts(args.out, task)
 
     report = write_report(args.out / "results.md", evaluation, charts)
+    print_performance(evaluation, evaluating, time.perf_counter() - started)
+    for written in (report, *charts.values()):
+        print(f"  wrote {written}")
     print()
-    print(f"Wrote {report}" + ("".join(f", {c}" for c in charts.values())))
     return 0
 
 
