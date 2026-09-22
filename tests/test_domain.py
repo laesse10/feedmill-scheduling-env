@@ -92,14 +92,13 @@ def test_production_minutes_rounds_up() -> None:
 
 
 def test_feed_catalog_matches_spec_table() -> None:
-    """One row deviates from SPEC section 2.3, deliberately.
+    """The catalog against the table in SPEC section 2.3.
 
-    SPEC classes `sheep` as less_sensitive (3 %). Annex I of Directive
-    2002/32/EC, as amended by Regulation (EU) No 574/2011, lists "small
-    ruminants (sheep and goat)" at 1.25 mg/kg of monensin sodium, the same
-    tier as equidae, bovine and laying birds, which is 1 % of the authorised
-    level in target feed. The catalog follows the legal text; the SPEC row
-    is the one that needs correcting.
+    `sheep` is classed sensitive on the authority of Annex I of Directive
+    2002/32/EC, as amended by Regulation (EU) No 574/2011, which lists "small
+    ruminants (sheep and goat)" at 1.25 mg/kg of monensin sodium -- the same
+    tier as equidae, bovine and laying birds, and 1 % of the authorised level
+    in target feed.
     """
     expected = {
         "broiler_mon": ("broiler", False, (D.MONENSIN,), D.CLASS_TARGET, 3),

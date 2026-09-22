@@ -54,7 +54,7 @@ target feed** (target feed = 1.0). This is how EU carry-over limits are defined.
 | `pig_medicated` | pig | no | antimicrobial | less_sensitive | 4 |
 | `pig_poultrypap` | pig | no | pap_poultry | less_sensitive | 4 |
 | `dairy` | cattle | yes | – | sensitive | 6 |
-| `sheep` | sheep | yes | – | less_sensitive | 4 |
+| `sheep` | sheep | yes | – | sensitive | 4 |
 | `horse` | horse | no | – | sensitive | 6 |
 
 **[VERIFY]** class of sheep and horse per substance in Annex I of Directive 2002/32/EC.
@@ -307,7 +307,6 @@ and house rules could be converted into this format without code changes.
 | verifier tests: initial 0, correct 1, invalid 0, written goal state 0 | `tests/test_verifier_required.py` |
 | one documented exploit, fix and proving test | `docs/exploit.md`, `tests/test_exploit.py`, section 10 |
 | runs with one command | `python run.py` |
-| note of at most one page | `NOTE.md` (written by Lars) |
 
 ---
 
